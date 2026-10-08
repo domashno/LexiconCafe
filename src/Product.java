@@ -1,9 +1,10 @@
 public class Product {
 	public String name;
 	public double price;
+	public int quantity;
 	public Product(){
 	}
-	public Product(String name, double price){
+	public Product(String name, double price) {
 		this.name = name;
 		this.price = price;
 	}
@@ -16,15 +17,18 @@ public class Product {
 				new Product("Sandwich", 55.00)
 		};
 	}
-	public String showProduct(){
-		return ( name + "\t\t\t" + price + " SEK");
-	}
-
 	public String getName() {
 		return name;
 	}
 
 	public double getPrice() {
 		return price;
+	}
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
+	public int getQuantity() {
+		return quantity;
 	}
 }

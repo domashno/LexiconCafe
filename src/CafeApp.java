@@ -10,15 +10,17 @@ public class CafeApp {
 		String customerName="";
 		int customersServed=0;
 		double totalRevenue=0.00;
-		boolean customerNameError=false;
-		boolean menuItemsIndexInvalid = true;
-		boolean menuItemquantityInvalid = true;
-		boolean menuloyaltyInvalid = true;
 		int productIndex=0;
 		int productQuantity=0;
 		boolean loyalty=false;
 		List<Order> orders = new ArrayList<Order>();
 		do {
+			ArrayList<Product> selectedProducts = new ArrayList<Product>();
+			boolean customerNameError=false;
+			boolean menuItemsIndexInvalid = true;
+			boolean menuItemquantityInvalid = true;
+			boolean menuloyaltyInvalid = true;
+			boolean menuMultiselect = true;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			do {
 				System.out.println("Welcome! What is your name? ");
@@ -38,30 +40,39 @@ public class CafeApp {
 			Product[] availableProducts = new Product().generateAvailableProducts();
 			showMenu(availableProducts);
 			do {
-				try {
-					System.out.println("Enter item number (1-"+ availableProducts.length +"):");
-					productIndex = (Integer.parseInt(reader.readLine())-1);
-					if ((productIndex+1) > availableProducts.length){
-						throw new NumberFormatException();
+
+
+				do {
+					try {
+						System.out.println("Enter item number (1-"+ availableProducts.length +", or 0 to finish):");
+						productIndex = (Integer.parseInt(reader.readLine())-1);
+						if ((productIndex+1) > availableProducts.length){
+							throw new NumberFormatException();
+						}
+						if (productIndex <=0){menuMultiselect = false;}
+						menuItemsIndexInvalid=false;
+					}catch(NumberFormatException e) {
+						System.out.println("(Error) Please enter a number between 1-"+ availableProducts.length +" : ");
+					} catch(IOException e) {
+						e.printStackTrace();
 					}
-					menuItemsIndexInvalid = false;
-				}catch(NumberFormatException e) {
-					System.out.println("(Error) Please enter a number between 1-"+ availableProducts.length +" : ");
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			} while(menuItemsIndexInvalid);
-			do {
-				try {
-					System.out.println("How many? ");
-					productQuantity = Integer.parseInt(reader.readLine());
-					menuItemquantityInvalid = false;
-				}catch(NumberFormatException e) {
-					System.out.println("Please enter a valid number");
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			} while(menuItemquantityInvalid);
+				} while(menuItemsIndexInvalid);
+				do {
+					if (!menuMultiselect){break;};
+					try {
+						System.out.println("How many? ");
+						productQuantity = Integer.parseInt(reader.readLine());
+						if ((productQuantity) <=0){throw new NumberFormatException();}
+						availableProducts[productIndex].setQuantity(productQuantity);
+						menuItemquantityInvalid = false;
+					}catch(NumberFormatException e) {
+						System.out.println("Please enter a valid number");
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+					selectedProducts.add(availableProducts[productIndex]);
+				} while(menuItemquantityInvalid);
+			} while(menuMultiselect);
 			do {
 				try {
 					System.out.println("Loyalty member? (yes/no):");
@@ -74,10 +85,10 @@ public class CafeApp {
 					System.out.println("Please enter yes or no");
 				}
 			} while(menuloyaltyInvalid);
-			showMenu(availableProducts);
-			Order  order=new Order(customerName, availableProducts[productIndex],productQuantity, loyalty);
+			Order  order=new Order(customerName, selectedProducts, loyalty);
+			order.printReceipt();
 			orders.add(order);
-			totalRevenue +=order.printReceipt();
+			totalRevenue +=order.getTotal();
 			customersServed++;
 		} while(!customerName.equalsIgnoreCase("done"));
 		showEndOfDayReport(customersServed, totalRevenue);
