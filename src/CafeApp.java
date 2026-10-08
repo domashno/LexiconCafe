@@ -8,21 +8,71 @@ public class CafeApp {
 		String customerName="";
 		int customersServed=0;
 		double totalRevenue=0.00;
+		boolean customerNameError=false;
+		boolean menuItemsIndexInvalid = true;
+		boolean menuItemquantityInvalid = true;
+		boolean menuloyaltyInvalid = true;
+		int productIndex=0;
+		int productQuantity=0;
+		boolean loyalty=false;
 		do {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));       // using java.io.*
-			System.out.println("Welcome! What is your name? ");
-			customerName = reader.readLine();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			do {
+				System.out.println("Welcome! What is your name? ");
+				try {
+						customerName = reader.readLine();
+						if (customerName.isEmpty()) {
+							customerNameError = true;
+							throw new Exception("Customer name can't be empty");
+						}else{customerNameError=false;}
+					} catch (Exception e) {
+						System.out.println(e.getMessage());
+				}
+
+			}while (customerNameError);
 			if (customerName.equalsIgnoreCase("done")){break;}
 			System.out.println("Hi " + customerName + "! Here is our menu:");
 			Product[] availableProducts = new Product().generateAvailableProducts();
 			showMenu(availableProducts);
-			System.out.println("Enter item number (1-5):");
-			String productIndex = reader.readLine();
-			System.out.println("How many? ");
-			String productQuantity = reader.readLine();
-			System.out.println("Loyalty member? (yes/no):");
-			String loyalty = reader.readLine();
-			totalRevenue += showReceipt(customerName, availableProducts[Integer.parseInt(productIndex) - 1], Integer.parseInt(productQuantity), loyalty.equals("yes"));
+			do {
+				try {
+					System.out.println("Enter item number (1-"+ availableProducts.length +"):");
+					productIndex = (Integer.parseInt(reader.readLine())-1);
+					if ((productIndex+1) > availableProducts.length){
+						throw new NumberFormatException();
+					}
+					menuItemsIndexInvalid = false;
+				}catch(NumberFormatException e) {
+					System.out.println("(Error) Please enter a number between 1-"+ availableProducts.length +" : ");
+				} catch(IOException e) {
+					e.printStackTrace();
+				}
+			} while(menuItemsIndexInvalid);
+			do {
+				try {
+					System.out.println("How many? ");
+					productQuantity = (Integer.parseInt(reader.readLine())-1);
+					menuItemquantityInvalid = false;
+				}catch(NumberFormatException e) {
+					System.out.println("Please enter a valid number");
+				} catch(IOException e) {
+					e.printStackTrace();
+				}
+			} while(menuItemquantityInvalid);
+			do {
+				try {
+					System.out.println("Loyalty member? (yes/no):");
+					switch (reader.readLine().toLowerCase()) {
+						case ("yes") -> {loyalty = true;menuloyaltyInvalid = false;}
+						case ("no") -> {loyalty = false;menuloyaltyInvalid = false;}
+						default -> throw new IOException("Invalid input");
+					}
+				} catch(IOException e) {
+					System.out.println("Please enter yes or no");
+				}
+			} while(menuloyaltyInvalid);
+
+			totalRevenue += showReceipt(customerName, availableProducts[productIndex],productQuantity, loyalty);
 			customersServed++;
 		} while(!customerName.equalsIgnoreCase("done"));
 		showEndOfDayReport(customersServed, totalRevenue);
@@ -76,7 +126,7 @@ public class CafeApp {
 		System.out.printf("%24s\n","END OF DAY REPORT");
 		System.out.println("==============================");
 		System.out.printf("%-17s%s%s\n", "Customers served", ": " ,customersServed);
-		System.out.printf("%-17s%s%s\n", "Total revenue", ": " , totalRevenue + " SEk");
+		System.out.printf("%-17s%s%s\n", "Total revenue", ": " , totalRevenue + " SEK");
 		System.out.println("==============================");
 	}
 }
