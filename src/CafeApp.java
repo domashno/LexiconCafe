@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.GenericDeclaration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CafeApp {
 	public static void main(String[] args) throws IOException {
@@ -15,6 +17,7 @@ public class CafeApp {
 		int productIndex=0;
 		int productQuantity=0;
 		boolean loyalty=false;
+		List<Order> orders = new ArrayList<Order>();
 		do {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			do {
@@ -51,7 +54,7 @@ public class CafeApp {
 			do {
 				try {
 					System.out.println("How many? ");
-					productQuantity = (Integer.parseInt(reader.readLine())-1);
+					productQuantity = Integer.parseInt(reader.readLine());
 					menuItemquantityInvalid = false;
 				}catch(NumberFormatException e) {
 					System.out.println("Please enter a valid number");
@@ -71,8 +74,10 @@ public class CafeApp {
 					System.out.println("Please enter yes or no");
 				}
 			} while(menuloyaltyInvalid);
-
-			totalRevenue += showReceipt(customerName, availableProducts[productIndex],productQuantity, loyalty);
+			showMenu(availableProducts);
+			Order  order=new Order(customerName, availableProducts[productIndex],productQuantity, loyalty);
+			orders.add(order);
+			totalRevenue +=order.printReceipt();
 			customersServed++;
 		} while(!customerName.equalsIgnoreCase("done"));
 		showEndOfDayReport(customersServed, totalRevenue);
@@ -80,46 +85,17 @@ public class CafeApp {
 	}
 	public static void showMenu(Product[] availableProducts){
 		showMenuHeader();
-		for (int i = 0; i < 5; i++){
+		for (int i = 0; i < availableProducts.length; i++){
 			System.out.printf("%s%-16s %s\n", (i+1) + ". ", availableProducts[i].getName(), availableProducts[i].getPrice() + " SEK");
 
 		}
 		showMenuFooter();
 	}
-	public static double showReceipt(String customerName,Product product,int productQuantity,boolean loyalty){
-		showMenuHeader();
-		double subTotal=subTotal(product,productQuantity),discount=discount(subTotal,loyalty),vat=vat(subTotal,discount);
-		System.out.printf("%-10s%s%s\n", "Customer", ": " ,customerName);
-		System.out.printf("%-10s%s%s\n", "item", ": " , product.getName() + " x " + productQuantity);
-		System.out.printf("%-10s%s%s\n", "Subtotal", ": " , subTotal + " SEK");
-		if (discount > 0 ) {System.out.printf("%-10s%s%s\n", "Discount", ": " , -discount + " SEK");}
-		System.out.printf("%-10s%s%s\n", "VAT", ": " , vat + " SEK");
-		System.out.println("------------------------------");
-		System.out.printf("%-10s%s%s\n", "TOTAL", "; " , (subTotal - discount + vat) + " SEK");
-		showMenuFooterMessage(customerName);
-		return subTotal - discount + vat;
-	}
-
 	public static void showMenuHeader(){
 		System.out.println("==============================\n       Lexicon Cafe\n==============================");
 	}
 	public static void showMenuFooter(){
 		System.out.println("==============================\n");
-	}
-	public static void showMenuFooterMessage(String customerName){
-		System.out.println("==============================");
-		System.out.printf("%"+ (30-((30-(customerName.length()+12)))/2)+"s\n","Thank you, "+ customerName +"!");
-		System.out.printf("%24s\n","See you next time.");
-		System.out.println("==============================");
-	}
-	public static double  subTotal(Product product,int productQuantity){
-		return product.getPrice() * productQuantity;
-	}
-	public static double  discount(double subTotal,boolean loyalty){
-		return loyalty ? subTotal * 0.15 : (subTotal > 150.00) ? subTotal * 0.10 : 0.00;
-	}
-	public static double  vat(double subtotal,double discount){
-		return (subtotal - discount) * 0.12;
 	}
 	public static void showEndOfDayReport(int customersServed,double totalRevenue){
 		System.out.println("==============================");
